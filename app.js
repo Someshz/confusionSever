@@ -6,11 +6,30 @@ var logger = require('morgan');
 const dishRouter=require("./routes/dishrouters")
 const promoRouter=require("./routes/promorouter")
 const leaderRouter=require("./routes/leaderrouter")
+const Dishes=require("./models/dishes");
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+const mongoose=require("mongoose");
+
 
 var app = express();
+const url="mongodb://localhost:27017/conFusion"
+
+const connect=mongoose.connect(url);
+
+connect.then((db)=>
+{
+  console.log("connected successfully to yhe server :\n");
+
+},(err)=>
+{
+  console.log(err)
+})
+.catch((err)=>
+{
+  console.log(err);
+})
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

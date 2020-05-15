@@ -20,7 +20,7 @@ const connect=mongoose.connect(url);
 
 connect.then((db)=>
 {
-  console.log("connected successfully to yhe server :\n");
+  console.log("connected successfully to the server :\n");
 
 },(err)=>
 {

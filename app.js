@@ -12,8 +12,11 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const mongoose=require("mongoose");
 function auth (req, res, next) {
-  console.log(req.headers);
-  var authHeader = req.headers.authorization;
+  console.log(req.signedCookies);
+
+  if(!req.signedCookies.user)
+  {
+    var authHeader = req.headers.authorization;
   if (!authHeader) {
       var err = new Error('You are not authenticated!');
       res.setHeader('WWW-Authenticate', 'Basic');
@@ -26,7 +29,8 @@ function auth (req, res, next) {
   var user = auth[0];
   var pass = auth[1];
   if (user == 'admin' && pass == 'password') {
-      next(); // authorized
+      res.cookie("user","admin",{signed:true})
+      next(); 
   } else {
       var err = new Error('You are not authenticated!');
       res.setHeader('WWW-Authenticate', 'Basic');      
@@ -34,6 +38,21 @@ function auth (req, res, next) {
       next(err);
   }
 }
+else{ 
+  if(req.signedCookies.user)
+  {
+    next();
+  }
+  else{
+    var err = new Error('You are not authenticated!');
+    res.setHeader('WWW-Authenticate', 'Basic');      
+    err.status = 401;
+    next(err);
+
+  }
+} 
+}
+ 
 
 
 
@@ -64,7 +83,7 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser('12345-67890-12345-67890'));
 app.use(auth);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);

@@ -7,14 +7,16 @@ const dishRouter=require("./routes/dishrouters")
 const promoRouter=require("./routes/promorouter")
 const leaderRouter=require("./routes/leaderrouter")
 const Dishes=require("./models/dishes");
+const session=require("express-session");
+const FileStore=require("session-file-store")(session);
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const mongoose=require("mongoose");
 function auth (req, res, next) {
-  console.log(req.signedCookies);
+  console.log(req.session);
 
-  if(!req.signedCookies.user)
+  if(!req.session.user)
   {
     var authHeader = req.headers.authorization;
   if (!authHeader) {
@@ -29,7 +31,7 @@ function auth (req, res, next) {
   var user = auth[0];
   var pass = auth[1];
   if (user == 'admin' && pass == 'password') {
-      res.cookie("user","admin",{signed:true})
+      req.session.user="admin"
       next(); 
   } else {
       var err = new Error('You are not authenticated!');
@@ -39,7 +41,7 @@ function auth (req, res, next) {
   }
 }
 else{ 
-  if(req.signedCookies.user)
+  if(req.session.user)
   {
     next();
   }
@@ -83,7 +85,15 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser('12345-67890-12345-67890'));
+//app.use(cookieParser('12345-67890-12345-67890'));
+app.use(session({
+  name:"session-id",
+  secret:"12345-567890-09876-54321",
+  saveUninitialized:false,
+  resave:false,
+  store:new FileStore()
+
+}))
 app.use(auth);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);

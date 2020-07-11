@@ -1,6 +1,8 @@
 const express=require("express");
 const bodyParser=require("body-parser");
 const Dishes=require("../models/dishes");
+var authenticate=require("../authenticated")
+
 
 const dishRoute=express.Router();
 dishRoute.use(bodyParser.json());
@@ -9,6 +11,7 @@ dishRoute.route("/")
 .get((req,res,next)=>
 {
    Dishes.find({})
+   .populate(comments.author)
    .then((dishes)=>
    {
     res.statusCode=200;
@@ -25,7 +28,7 @@ dishRoute.route("/")
     })
 })
 
-.post((req,res,next)=>
+.post(authenticate.verifyuser,(req,res,next)=>
 {
     Dishes.create(req.body)
     .then((dish)=>
@@ -44,12 +47,12 @@ dishRoute.route("/")
     })
 })
 
-.put((req,res,next)=>
+.put(authenticate.verifyuser,(req,res,next)=>
 {   res.statusCode=403;
     res.end("cannot put the information");
 })
 
-.delete((req,res,next)=>
+.delete(authenticate.verifyuser,(req,res,next)=>
 {
     Dishes.remove({})
     .then((resp)=>
@@ -68,6 +71,7 @@ dishRoute.route("/:dishId")
 .get((req,res,next)=>
 {
     Dishes.findById(req.params.dishId)
+    .populate(comments.author)
     .then((dishes)=>
     {
         res.statusCode=200;
@@ -83,13 +87,13 @@ dishRoute.route("/:dishId")
      })
  })
 
-.post((req,res,next)=>
+.post(authenticate.verifyuser,(req,res,next)=>
 {
     res.statusCode=403;
     res.end("post operation not supported on /dishes/"+req.params.dishId);
 })
 
-.put((req,res,next)=>
+.put(authenticate.verifyuser,(req,res,next)=>
 {   
     Dishes.findByIdAndUpdate(req.params.dishId,{$set:req.body},{new:true})
     .then((dishes)=>
@@ -107,7 +111,7 @@ dishRoute.route("/:dishId")
      })
 })
 
-.delete((req,res,next)=>
+.delete(authenticate.verifyuser,(req,res,next)=>
 {
     Dishes.findByIdAndRemove(req.params.dishId)
     .then((resp)=>
@@ -125,9 +129,11 @@ dishRoute.route("/:dishId")
 
 
 dishRoute.route("/:dishId/comments")
+
 .get((req,res,next)=>
 {
    Dishes.findById(req.params.dishId)
+   .populate('comments.author')
    .then((dish)=>
    {
     if(dish!= null)
@@ -153,7 +159,7 @@ dishRoute.route("/:dishId/comments")
     })
 })
 
-.post((req,res,next)=>
+.post(authenticate.verifyuser,(req,res,next)=>
 {
 
     Dishes.findById(req.params.dishId)
@@ -162,13 +168,20 @@ dishRoute.route("/:dishId/comments")
 
     if(dish!= null)
     {
+        req.body.author=req.user._id;
         dish.comments.push(req.body);
         dish.save()
         .then((dish)=>
         {
+            Dishes.findById(dish._id)
+            .populate("comments.author")
+            .then((dish)=>
+            {
             res.statusCode=200;
             res.setHeader('Content-Type', 'application/json');
             res.json(dish.comments);
+            })
+            
         }) 
     }
     else
@@ -187,12 +200,12 @@ dishRoute.route("/:dishId/comments")
     })
 })
 
-.put((req,res,next)=>
+.put(authenticate.verifyuser,(req,res,next)=>
 {   res.statusCode=403;
     res.end("cannot proceed the put on "+req.params.dishId);
 })
 
-.delete((req,res,next)=>
+.delete(authenticate.verifyuser,(req,res,next)=>
 {
     Dishes.findById(req.params.dishId)
     .then((dish)=>
@@ -222,9 +235,10 @@ dishRoute.route("/:dishId/comments/:commentId")
 .get((req,res,next)=>
 {
     Dishes.findById(req.params.dishId)
+    .populate("comments.author")
     .then((dish)=>
     {
-    if(dish!= null && dish.comments.id(req.params.commentId) != null )
+    if(dish!= null && dish.comments.id(req.params.commentId) != null)
     {
         res.statusCode=200;
         res.setHeader('Content-Type', 'application/json');
@@ -252,13 +266,13 @@ dishRoute.route("/:dishId/comments/:commentId")
      })
  })
 
-.post((req,res,next)=>
+.post(authenticate.verifyuser,(req,res,next)=>
 {
     res.statusCode=403;
     res.end("post operation not supported on /dishes/"+req.params.dishId+"/comments"+req.params.commentId);
 })
 
-.put((req, res, next) => {
+.put(authenticate.verifyuser,(req, res, next) => {
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if (dish != null && dish.comments.id(req.params.commentId) != null) {
@@ -270,9 +284,15 @@ dishRoute.route("/:dishId/comments/:commentId")
             }
             dish.save()
             .then((dish) => {
+                Dishes.findById(dish._id)
+                .populate("comments.author")
+                .then((dish)=>
+                {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
-                res.json(dish.comments.id(req.params.commentId));                
+                res.json(dish.comments.id(req.params.commentId));  
+                })
+                              
             }, (err) => next(err));
         }
         else if (dish == null) {
@@ -288,16 +308,22 @@ dishRoute.route("/:dishId/comments/:commentId")
     }, (err) => next(err))
     .catch((err) => next(err));
 })
-.delete((req, res, next) => {
+.delete(authenticate.verifyuser,(req, res, next) => {
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if (dish != null && dish.comments.id(req.params.commentId) != null) {
             dish.comments.id(req.params.commentId).remove();
             dish.save()
             .then((dish) => {
+                Dishes.findById(dish._id)
+                .populate("comments.author")
+                .then((dish)=>
+                {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
                 res.json(dish);                
+                })
+                
             }, (err) => next(err));
         }
         else if (dish == null) {
@@ -313,8 +339,6 @@ dishRoute.route("/:dishId/comments/:commentId")
     }, (err) => next(err))
     .catch((err) => next(err));
 });
-
-
 
 
 module.exports=dishRoute;

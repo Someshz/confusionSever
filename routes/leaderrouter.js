@@ -1,6 +1,8 @@
 const express=require("express");
 const bodyParser=require("body-parser");
-const Leaders=require("../models/leaders")
+const Leaders=require("../models/leaders");
+var authenticate=require("../authenticated");
+
 const leaderRoute=express.Router();
 leaderRoute.use(bodyParser.json());
 
@@ -24,7 +26,7 @@ leaderRoute.route("/")
     })
 })
 
-.post((req,res,next)=>
+.post(authenticate.verifyuser,(req,res,next)=>
 {
     Leaders.create(req.body)
     .then((lead)=>
@@ -43,12 +45,12 @@ leaderRoute.route("/")
     })
 })
 
-.put((req,res,next)=>
+.put(authenticate.verifyuser,(req,res,next)=>
 {   res.statusCode=403;
     res.end("cannot put the information");
 })
 
-.delete((req,res,next)=>
+.delete(authenticate.verifyuser,(req,res,next)=>
 {
     Leaders.remove({})
     .then((resp)=>
@@ -82,13 +84,13 @@ leaderRoute.route("/:leadId")
      })
  })
 
-.post((req,res,next)=>
+.post(authenticate.verifyuser,(req,res,next)=>
 {
     res.statusCode=403;
     res.end("post operation not supported on /dishes/"+req.params.leadId);
 })
 
-.put((req,res,next)=>
+.put(authenticate.verifyuser,(req,res,next)=>
 {   
     Leaders.findByIdAndUpdate(req.params.leadId,{$set:req.body},{new:true})
     .then((leads)=>
@@ -106,7 +108,7 @@ leaderRoute.route("/:leadId")
      })
 })
 
-.delete((req,res,next)=>
+.delete(authenticate.verifyuser,(req,res,next)=>
 {
     Leaders.findByIdAndRemove(req.params.leadId)
     .then((resp)=>

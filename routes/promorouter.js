@@ -1,6 +1,8 @@
 const express=require("express");
 const bodyParser=require("body-parser");
 const Promos=require("../models/promotions")
+var authenticate=require("../authenticated")
+
 const promoRoute=express.Router();
 promoRoute.use(bodyParser.json());
 
@@ -24,7 +26,7 @@ promoRoute.route("/")
     })
 })
 
-.post((req,res,next)=>
+.post(authenticate.verifyuser,(req,res,next)=>
 {
     Promos.create(req.body)
     .then((promo)=>
@@ -43,12 +45,12 @@ promoRoute.route("/")
     })
 })
 
-.put((req,res,next)=>
+.put(authenticate.verifyuser,(req,res,next)=>
 {   res.statusCode=403;
     res.end("cannot put the information");
 })
 
-.delete((req,res,next)=>
+.delete(authenticate.verifyuser,(req,res,next)=>
 {
     Promos.remove({})
     .then((resp)=>
@@ -82,13 +84,13 @@ promoRoute.route("/:promoId")
      })
  })
 
-.post((req,res,next)=>
+.post(authenticate.verifyuser,(req,res,next)=>
 {
     res.statusCode=403;
     res.end("post operation not supported on /dishes/"+req.params.promoId);
 })
 
-.put((req,res,next)=>
+.put(authenticate.verifyuser,(req,res,next)=>
 {   
     Promos.findByIdAndUpdate(req.params.promoId,{$set:req.body},{new:true})
     .then((promos)=>
@@ -106,7 +108,7 @@ promoRoute.route("/:promoId")
      })
 })
 
-.delete((req,res,next)=>
+.delete(authenticate.verifyuser,(req,res,next)=>
 {
     Promos.findByIdAndRemove(req.params.promoId)
     .then((resp)=>

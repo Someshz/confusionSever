@@ -17,6 +17,17 @@ var config=require("./config");
 const mongoose=require("mongoose");
 
 var app = express();
+
+app.use('*',(req,res,next)=>
+{
+  if(req.secure)
+  {
+    next();
+  }
+  else {
+    res.redirect(307, 'https://' + req.hostname + ':' + app.get('secPort') + req.url);
+  }
+});
 const url=config.mongourl;
 
 const connect=mongoose.connect(url);

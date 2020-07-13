@@ -28,7 +28,7 @@ dishRoute.route("/")
     })
 })
 
-.post(authenticate.verifyuser,(req,res,next)=>
+.post(authenticate.verifyuser,authenticate.verifyadmin,(req,res,next)=>
 {
     Dishes.create(req.body)
     .then((dish)=>
@@ -47,12 +47,12 @@ dishRoute.route("/")
     })
 })
 
-.put(authenticate.verifyuser,(req,res,next)=>
+.put(authenticate.verifyuser,authenticate.verifyadmin,(req,res,next)=>
 {   res.statusCode=403;
     res.end("cannot put the information");
 })
 
-.delete(authenticate.verifyuser,(req,res,next)=>
+.delete(authenticate.verifyuser,authenticate.verifyadmin,(req,res,next)=>
 {
     Dishes.remove({})
     .then((resp)=>
@@ -87,13 +87,13 @@ dishRoute.route("/:dishId")
      })
  })
 
-.post(authenticate.verifyuser,(req,res,next)=>
+.post(authenticate.verifyuser,authenticate.verifyadmin,(req,res,next)=>
 {
     res.statusCode=403;
     res.end("post operation not supported on /dishes/"+req.params.dishId);
 })
 
-.put(authenticate.verifyuser,(req,res,next)=>
+.put(authenticate.verifyuser,authenticate.verifyadmin,(req,res,next)=>
 {   
     Dishes.findByIdAndUpdate(req.params.dishId,{$set:req.body},{new:true})
     .then((dishes)=>
@@ -111,7 +111,7 @@ dishRoute.route("/:dishId")
      })
 })
 
-.delete(authenticate.verifyuser,(req,res,next)=>
+.delete(authenticate.verifyuser,authenticate.verifyadmin,(req,res,next)=>
 {
     Dishes.findByIdAndRemove(req.params.dishId)
     .then((resp)=>
@@ -159,7 +159,7 @@ dishRoute.route("/:dishId/comments")
     })
 })
 
-.post(authenticate.verifyuser,(req,res,next)=>
+.post(authenticate.verifyuser, authenticate.verifyadmin,(req,res,next)=>
 {
 
     Dishes.findById(req.params.dishId)
@@ -200,12 +200,12 @@ dishRoute.route("/:dishId/comments")
     })
 })
 
-.put(authenticate.verifyuser,(req,res,next)=>
+.put(authenticate.verifyuser,authenticate.verifyadmin,(req,res,next)=>
 {   res.statusCode=403;
     res.end("cannot proceed the put on "+req.params.dishId);
 })
 
-.delete(authenticate.verifyuser,(req,res,next)=>
+.delete(authenticate.verifyuser,authenticate.verifyadmin,(req,res,next)=>
 {
     Dishes.findById(req.params.dishId)
     .then((dish)=>
@@ -266,13 +266,13 @@ dishRoute.route("/:dishId/comments/:commentId")
      })
  })
 
-.post(authenticate.verifyuser,(req,res,next)=>
+.post(authenticate.verifyuser,authenticate.verifyadmin,(req,res,next)=>
 {
     res.statusCode=403;
     res.end("post operation not supported on /dishes/"+req.params.dishId+"/comments"+req.params.commentId);
 })
 
-.put(authenticate.verifyuser,(req, res, next) => {
+.put(authenticate.verifyuser,authenticate.verifyadmin,(req, res, next) => {
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if (dish != null && dish.comments.id(req.params.commentId) != null) {
@@ -308,7 +308,7 @@ dishRoute.route("/:dishId/comments/:commentId")
     }, (err) => next(err))
     .catch((err) => next(err));
 })
-.delete(authenticate.verifyuser,(req, res, next) => {
+.delete(authenticate.verifyuser,authenticate.verifyadmin,(req, res, next) => {
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if (dish != null && dish.comments.id(req.params.commentId) != null) {

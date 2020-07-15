@@ -15,17 +15,19 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var config=require("./config");
 const mongoose=require("mongoose");
+const uploadRouter = require('./routes/uploadRouter');
+
 
 var app = express();
 
 app.use('*',(req,res,next)=>
-{
+{ 
   if(req.secure)
   {
     next();
   }
   else {
-    res.redirect(307, 'https://' + req.hostname + ':' + app.get('secPort') + req.url);
+    res.redirect(307,'https://' + req.hostname + ':' + app.get('secPort') + req.url);
   }
 });
 const url=config.mongourl;
@@ -72,6 +74,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use("/dishes",dishRouter);
 app.use("/leader",leaderRouter);
 app.use("/promos",promoRouter);
+app.use('/imageUpload',uploadRouter);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

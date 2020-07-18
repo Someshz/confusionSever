@@ -2,12 +2,15 @@ const express=require("express");
 const bodyParser=require("body-parser");
 const Leaders=require("../models/leaders");
 var authenticate=require("../authenticated");
+const cors = require('./cors');
+
 
 const leaderRoute=express.Router();
 leaderRoute.use(bodyParser.json());
 
 leaderRoute.route("/")
-.get((req,res,next)=>
+.options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
+.get(cors.cors,(req,res,next)=>
 {
    Leaders.find({})
    .then((leads)=>
@@ -26,7 +29,7 @@ leaderRoute.route("/")
     })
 })
 
-.post(authenticate.verifyuser,(req,res,next)=>
+.post(cors.corsWithOptions,authenticate.verifyuser,(req,res,next)=>
 {
     Leaders.create(req.body)
     .then((lead)=>
@@ -45,12 +48,12 @@ leaderRoute.route("/")
     })
 })
 
-.put(authenticate.verifyuser,(req,res,next)=>
+.put(cors.corsWithOptions,authenticate.verifyuser,(req,res,next)=>
 {   res.statusCode=403;
     res.end("cannot put the information");
 })
 
-.delete(authenticate.verifyuser,(req,res,next)=>
+.delete(cors.corsWithOptions,authenticate.verifyuser,(req,res,next)=>
 {
     Leaders.remove({})
     .then((resp)=>
@@ -66,7 +69,9 @@ leaderRoute.route("/")
 })
 
 leaderRoute.route("/:leadId")
-.get((req,res,next)=>
+.options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
+.get(cors.cors,
+  (req,res,next)=>
 {
     Leaders.findById(req.params.leadId)
     .then((leads)=>
@@ -84,13 +89,13 @@ leaderRoute.route("/:leadId")
      })
  })
 
-.post(authenticate.verifyuser,(req,res,next)=>
+.post(cors.corsWithOptions,authenticate.verifyuser,(req,res,next)=>
 {
     res.statusCode=403;
     res.end("post operation not supported on /dishes/"+req.params.leadId);
 })
 
-.put(authenticate.verifyuser,(req,res,next)=>
+.put(cors.corsWithOptions,authenticate.verifyuser,(req,res,next)=>
 {   
     Leaders.findByIdAndUpdate(req.params.leadId,{$set:req.body},{new:true})
     .then((leads)=>
@@ -108,7 +113,7 @@ leaderRoute.route("/:leadId")
      })
 })
 
-.delete(authenticate.verifyuser,(req,res,next)=>
+.delete(cors.corsWithOptions,authenticate.verifyuser,(req,res,next)=>
 {
     Leaders.findByIdAndRemove(req.params.leadId)
     .then((resp)=>

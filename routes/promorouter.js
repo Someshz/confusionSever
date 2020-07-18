@@ -2,12 +2,15 @@ const express=require("express");
 const bodyParser=require("body-parser");
 const Promos=require("../models/promotions")
 var authenticate=require("../authenticated")
+const cors = require('./cors');
+
 
 const promoRoute=express.Router();
 promoRoute.use(bodyParser.json());
 
 promoRoute.route("/")
-.get((req,res,next)=>
+.options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
+.get(cors.cors,(req,res,next)=>
 {
    Promos.find({})
    .then((promos)=>
@@ -26,7 +29,7 @@ promoRoute.route("/")
     })
 })
 
-.post(authenticate.verifyuser,(req,res,next)=>
+.post(cors.corsWithOptions,authenticate.verifyuser,(req,res,next)=>
 {
     Promos.create(req.body)
     .then((promo)=>
@@ -45,12 +48,12 @@ promoRoute.route("/")
     })
 })
 
-.put(authenticate.verifyuser,(req,res,next)=>
+.put(cors.corsWithOptions,authenticate.verifyuser,(req,res,next)=>
 {   res.statusCode=403;
     res.end("cannot put the information");
 })
 
-.delete(authenticate.verifyuser,(req,res,next)=>
+.delete(cors.corsWithOptions,authenticate.verifyuser,(req,res,next)=>
 {
     Promos.remove({})
     .then((resp)=>
@@ -66,7 +69,8 @@ promoRoute.route("/")
 })
 
 promoRoute.route("/:promoId")
-.get((req,res,next)=>
+.options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
+.get(cors.cors,(req,res,next)=>
 {
     Promos.findById(req.params.promoId)
     .then((promos)=>
@@ -84,13 +88,13 @@ promoRoute.route("/:promoId")
      })
  })
 
-.post(authenticate.verifyuser,(req,res,next)=>
+.post(cors.corsWithOptions,authenticate.verifyuser,(req,res,next)=>
 {
     res.statusCode=403;
     res.end("post operation not supported on /dishes/"+req.params.promoId);
 })
 
-.put(authenticate.verifyuser,(req,res,next)=>
+.put(cors.corsWithOptions,authenticate.verifyuser,(req,res,next)=>
 {   
     Promos.findByIdAndUpdate(req.params.promoId,{$set:req.body},{new:true})
     .then((promos)=>
@@ -108,7 +112,7 @@ promoRoute.route("/:promoId")
      })
 })
 
-.delete(authenticate.verifyuser,(req,res,next)=>
+.delete(cors.corsWithOptions,authenticate.verifyuser,(req,res,next)=>
 {
     Promos.findByIdAndRemove(req.params.promoId)
     .then((resp)=>
